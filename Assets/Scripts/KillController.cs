@@ -1,9 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class KillController : MonoBehaviour
 {
+    [SerializeField]
+    private BreakoutManager gameManager;
+
     private void OnTriggerEnter(Collider collision)
     {
         if (collision.gameObject.CompareTag("Ball"))
@@ -14,7 +15,7 @@ public class KillController : MonoBehaviour
 
     private void KillPlayer(BallController controller)
     {
-        //Decrease life count
+        gameManager.LoseLife();
         controller.Reset();
     }
 }
