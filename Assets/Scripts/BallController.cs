@@ -39,6 +39,7 @@ public class BallController : NetworkBehaviour
         if (paddleController.isLocalPlayer)//Check whether our paddle is the player object
         {
             isLocalBall = true;
+            gameManager.ballController = this;
         }
         else //Gray out the other players.
         {

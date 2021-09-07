@@ -8,6 +8,8 @@ public class BreakoutManager : NetworkBehaviour
 
     [SerializeField]
     private BrickManager brickManager;
+    [HideInInspector]
+    public BallController ballController;
 
     [SerializeField]
     private TMPro.TMP_Text scoreText;
@@ -138,6 +140,7 @@ public class BreakoutManager : NetworkBehaviour
     private void RpcRestart()
     {
         gameOverPanel.SetActive(false); //Hide game over UI
+        ballController.Reset();
     }
 
     private void ResetLivesAndScores()

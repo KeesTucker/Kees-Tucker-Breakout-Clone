@@ -10,6 +10,7 @@ public class PaddleController : NetworkBehaviour
     [SyncVar]
     private BallController ballController;
 
+    [SyncVar]
     private float height;
     private float xEdge; //Edge of screen in world space.
 
@@ -32,11 +33,14 @@ public class PaddleController : NetworkBehaviour
             ballController = ball.GetComponent<BallController>();
             ballController.paddle = transform;
             ballController.paddleController = this;
+
+            int countID = FindObjectsOfType<PaddleController>().Length - 1;
+            float heightOffset = 1.5f + 0.75f * countID;
+            height = -Camera.main.ViewportToWorldPoint(new Vector3(0, 1f, 0)).y + heightOffset;
         }
 
         if (isLocalPlayer)
         {
-            height = -Camera.main.ViewportToWorldPoint(new Vector3(0, 1f, 0)).y + 1.5f;
             //Find x coordinate at the right most part of the screen and then subtract half width of platform, we use this to clamp the x position of platform.
             xEdge = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0, 0)).x - (transform.localScale.x / 2f);
         }
