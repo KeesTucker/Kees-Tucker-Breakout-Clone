@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 618683844}
   m_Layer: 0
   m_Name: Paddle
-  m_TagString: Untagged
+  m_TagString: Paddle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -661,6 +661,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 209f9c89bf4133842bc92870f7813874, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 618683843}
+  friction: 150
+  velocity: {x: 0, y: 0, z: 0}
 --- !u!65 &618683845
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1124,6 +1127,7 @@ MonoBehaviour:
   brickManager: {fileID: 860654888}
   rb: {fileID: 1175580834}
   paddle: {fileID: 618683842}
+  paddleController: {fileID: 618683844}
   releaseKey: 32
   speed: 5
 --- !u!1 &1272549532

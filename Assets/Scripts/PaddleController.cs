@@ -2,8 +2,17 @@
 
 public class PaddleController : MonoBehaviour
 {
+    [SerializeField]
+    private Rigidbody rb;
+
     private float height;
     private float xEdge; //Edge of screen in world space.
+
+    [SerializeField]
+    private float friction = 100f;
+    private float oldX;
+    [HideInInspector]
+    public Vector3 velocity;
 
     private void Start()
     {
@@ -12,11 +21,16 @@ public class PaddleController : MonoBehaviour
         xEdge = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0, 0)).x - (transform.localScale.x / 2f);
     }
 
+    //Move and calulate friction velocity for ball collisions
     private void Update()
     {
         //Find mouse position in world.
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         //Clamp x so platform can't move off the screen and move position to x coordinate of mouse.
         transform.position = new Vector3(Mathf.Clamp(mousePos.x, -xEdge, xEdge), height, 0);
+
+        //Calculate velocity of player movement for ball to use for friction on collision.
+        velocity = new Vector3(mousePos.x - oldX, 0, 0) * friction;
+        oldX = mousePos.x;
     }
 }

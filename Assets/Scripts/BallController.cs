@@ -10,6 +10,8 @@ public class BallController : MonoBehaviour
     private Rigidbody rb;
     [SerializeField]
     private Transform paddle;
+    [SerializeField]
+    private PaddleController paddleController;
 
     [SerializeField]
     private KeyCode releaseKey; //Keycode the user must press to release the ball.
@@ -67,8 +69,13 @@ public class BallController : MonoBehaviour
                 gameManager.IncreaseScore(info.brickLevel);
                 Destroy(collision.gameObject);
             }
+            rb.velocity = Vector3.Normalize(rb.velocity) * speed;
         }
-        rb.velocity = Vector3.Normalize(rb.velocity) * speed;
+        else if (collision.gameObject.CompareTag("Paddle"))
+        {
+            rb.velocity = Vector3.Normalize(rb.velocity + paddleController.velocity) * speed; //Impart velocity of paddle on ball to give friction approximation.
+        }
+        
     }
 
     //Player died, reset their velocity and released flag. Kill controller fires this.
