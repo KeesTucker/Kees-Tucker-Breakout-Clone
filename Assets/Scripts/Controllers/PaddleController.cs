@@ -4,11 +4,10 @@ using Mirror;
 
 public class PaddleController : NetworkBehaviour
 {
-    private const float COLLIDER_WIDTH = 1f;
+    private const float PADDLE_HEIGHT_OFFSET = 1.5f;
 
     [SerializeField]
     private GameObject ballGO;
-    private Transform rightWallTransform;
     [SyncVar]
     private BallController ballController;
 
@@ -24,9 +23,8 @@ public class PaddleController : NetworkBehaviour
     [HideInInspector]
     public Vector3 paddleVelocity;
 
-    private IEnumerator Start()
+    private void Start()
     {
-        rightWallTransform = GameObject.Find("WallRight").transform; //Just grab the right wall so we can use it for clamping the paddle movement
         if (isServer)
         {
             GameObject ball = Instantiate(ballGO);
@@ -38,16 +36,12 @@ public class PaddleController : NetworkBehaviour
             ballController = ball.GetComponent<BallController>();
             ballController.paddleTransform = transform;
             ballController.paddleController = this;
-
-            int countID = FindObjectsOfType<PaddleController>().Length - 1;
-            float heightOffset = 1.5f + 0.75f * countID;
-            heightOfPaddle = -Camera.main.ViewportToWorldPoint(new Vector3(0, 1f, 0)).y + heightOffset;
+            heightOfPaddle = -Constants.CAM_SIZE + PADDLE_HEIGHT_OFFSET;
         }
-        yield return new WaitForEndOfFrame();
         if (isLocalPlayer)
         {
             //Find x coordinate at the right most part of the play area and then subtract half width of platform and the collider, we use this to clamp the x position of platform.
-            xEdge = rightWallTransform.position.x - (COLLIDER_WIDTH / 2f) - (transform.localScale.x / 2f);
+            xEdge = Constants.CAM_SIZE * Camera.main.aspect - (transform.localScale.x / 2f);
         }
         else //Else gray out other players
         {

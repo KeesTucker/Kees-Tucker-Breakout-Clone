@@ -98,7 +98,7 @@ public class BrickManager : NetworkBehaviour
     //Just makes sure the grid is fit to the screen properly. Only on server, clients resize their cams to the grid.
     private void ScaleGrid()
     {
-        gridScale = Camera.main.ViewportToWorldPoint(new Vector2(1f, 0)).x * 2 / width;
-        brickHeightOffset = (Camera.main.ViewportToWorldPoint(new Vector2(0, 1f)).y) - (gridScale * height / 4f);
+        gridScale = Constants.CAM_SIZE * 2 * Camera.main.aspect / width;
+        brickHeightOffset = Constants.CAM_SIZE - gridScale * height / 4f;
     }
 }
