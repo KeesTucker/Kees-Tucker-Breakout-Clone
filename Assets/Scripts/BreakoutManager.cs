@@ -1,11 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
+using Mirror;
 
-public class BreakoutManager : MonoBehaviour
+public class BreakoutManager : NetworkBehaviour
 {
     private const int POINTSPERBLOCK = 100;
 
-    [SerializeField]
-    private BallController ballController;
     [SerializeField]
     private BrickManager brickManager;
 
@@ -17,10 +17,11 @@ public class BreakoutManager : MonoBehaviour
     [SerializeField]
     GameObject gameOverPanel;
     [SerializeField]
+    Button restartButton;
+    [SerializeField]
     TMPro.TMP_Text endScoreText;
 
-    [SerializeField]
-    private float initalSpeed = 5f;
+    public float initalSpeed = 5f;
     [SerializeField]
     private int[] speedIncreaseSteps = { 400, 1200 }; //Holds "score steps" which are basically just scores that trigger a speed increase when our score superscedes them.
     [SerializeField]
@@ -30,22 +31,26 @@ public class BreakoutManager : MonoBehaviour
     private int lives = 3;
     private int maxBrickLevel = 0; 
 
-    private void Start()
+    public override void OnStartServer()
     {
-        ballController.speed = initalSpeed;
         ResetLivesAndScores(); //Make sure UI is updated.
     }
 
-    public void IncreaseScore(int brickLevel)
+    public void IncreaseScore(int brickLevel, BallController ballController)
     {
         score += POINTSPERBLOCK;
-        scoreText.text = "Score: " + score.ToString();
+        RpcIncreaseScore(score);
+        CalculateSpeed(brickLevel, ballController);
+    }
 
-        CalculateSpeed(brickLevel);
+    [ClientRpc]
+    private void RpcIncreaseScore(int score)
+    {
+        scoreText.text = "Score: " + score.ToString();
     }
 
     //Increases speed based on score and the max level brick we have destroyed. This introduces a difficulty curve.
-    private void CalculateSpeed(int brickLevel)
+    private void CalculateSpeed(int brickLevel, BallController ballController)
     {
         ballController.speed = initalSpeed;
 
@@ -75,27 +80,44 @@ public class BreakoutManager : MonoBehaviour
         if (lives > 1)
         {
             lives--;
-            livesText.text = "Lives: " + lives.ToString();
+            RpcLoseLife(lives);
         }
         else
         {
-            GameOver();            
+            RpcGameOver(score);            
         }
     }
 
-    public void GameOver()
+    [ClientRpc]
+    private void RpcLoseLife(int lives)
+    {
+        livesText.text = "Lives: " + lives.ToString();
+    }
+
+    [ClientRpc]
+    public void RpcGameOver(int score)
     {
         gameOverPanel.SetActive(true); //Show game over UI
+        if (!isServer)
+        {
+            restartButton.interactable = false;
+        }
         endScoreText.text = "Score: " + score.ToString();
     }
 
     public void Restart()
     {
-        gameOverPanel.SetActive(false); //Hide game over UI
+        RpcRestart();
         ResetLivesAndScores(); //Make sure UI is updated.
 
         brickManager.DestroyBricks();
         brickManager.CreateBricks();
+    }
+
+    [ClientRpc]
+    private void RpcRestart()
+    {
+        gameOverPanel.SetActive(false); //Hide game over UI
     }
 
     private void ResetLivesAndScores()

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using Mirror;
 
-public class KillController : MonoBehaviour
+public class KillController : NetworkBehaviour
 {
     [SerializeField]
     private BreakoutManager gameManager;
@@ -10,13 +11,18 @@ public class KillController : MonoBehaviour
         //If ball passes bottom of screen
         if (collision.gameObject.CompareTag("Ball"))
         {
-            KillPlayer(collision.gameObject.GetComponent<BallController>());
+            BallController ballController = collision.gameObject.GetComponent<BallController>();
+            if (ballController.isLocalBall)
+            {
+                KillPlayer(ballController);
+            }
+            
         }
     }
 
     private void KillPlayer(BallController ballController)
     {
-        gameManager.LoseLife(); //Take a life off player
+        ballController.CmdLoseLife(); //Take a life off player
         ballController.Reset(); //Reset speed of ball etc
     }
 }

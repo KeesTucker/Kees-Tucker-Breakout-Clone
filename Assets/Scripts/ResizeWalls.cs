@@ -1,17 +1,24 @@
 using UnityEngine;
+using Mirror;
 
-public class ResizeWalls : MonoBehaviour
+public class ResizeWalls : NetworkBehaviour
 {
+    [SyncVar]
+    private Vector2 screenBounds;
+
     [SerializeField] private GameObject left;
     [SerializeField] private GameObject right;
     [SerializeField] private GameObject top;
     [SerializeField] private GameObject bottom;
 
     //This is unimportant, I just wanted the colliders to resize to the screen dimensions
-    void Start()
+    public override void OnStartServer()
     {
-        Vector2 screenBounds = Camera.main.ViewportToWorldPoint(new Vector2(1f, 1f));
+        screenBounds = Camera.main.ViewportToWorldPoint(new Vector2(1f, 1f));
+    }
 
+    public override void OnStartClient()
+    {
         //Set positions
         right.transform.position = new Vector3(screenBounds.x + 0.5f, -0.5f, 0);
         left.transform.position = new Vector3(-screenBounds.x - 0.5f, -0.5f, 0);
