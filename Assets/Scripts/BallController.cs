@@ -5,18 +5,20 @@ public class BallController : MonoBehaviour
     [SerializeField]
     private BreakoutManager gameManager;
     [SerializeField]
+    private BrickManager brickManager;
+    [SerializeField]
     private Rigidbody rb;
     [SerializeField]
     private Transform paddle;
 
     [SerializeField]
-    private KeyCode releaseKey;
-    [SerializeField]
-    private float speed = 10f;
+    private KeyCode releaseKey; //Keycode the user must press to release the ball.
+    [HideInInspector]
+    public float speed;
 
-    private Vector3 offset;
-    private bool released = false;
-    private bool releaseEvent = false;
+    private Vector3 offset; //Offset for respawning ball on paddle.
+    private bool released = false; //Keeps track of whether ball is attached to paddle or game has started.
+    private bool releaseFlag = false; //Triggers the Release() method in FixedUpdate() so physics are handled in FixedUpdate() instead of Update().
 
     //Capture our current offset compared to the paddle for use in respawning.
     private void Start()
@@ -30,7 +32,7 @@ public class BallController : MonoBehaviour
         if (Input.GetKeyDown(releaseKey) && !released)
         {
             released = true;
-            releaseEvent = true;
+            releaseFlag = true;
         }
 
         //Make ball follow paddle.
@@ -43,7 +45,7 @@ public class BallController : MonoBehaviour
     private void FixedUpdate()
     {
         //If player just hit release key
-        if (releaseEvent)
+        if (releaseFlag)
         {
             Release();
         }
@@ -54,10 +56,19 @@ public class BallController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Brick"))
         {
-            gameManager.IncreaseScore();
-            rb.velocity = Vector3.Normalize(rb.velocity) * speed;
-            Destroy(collision.gameObject);
+            BrickInfo info = collision.gameObject.GetComponent<BrickInfo>();
+            if (info.armouredBrick) //If its an armoured brick turn it into a normal brick.
+            {
+                info.armouredBrick = false;
+                brickManager.SetBrickColor(info); //Set it's colour to that of a normal brick.
+            }
+            else //Otherwise destroy this brick
+            {
+                gameManager.IncreaseScore(info.brickLevel);
+                Destroy(collision.gameObject);
+            }
         }
+        rb.velocity = Vector3.Normalize(rb.velocity) * speed;
     }
 
     //Player died, reset their velocity and released flag. Kill controller fires this.
@@ -70,7 +81,7 @@ public class BallController : MonoBehaviour
     //Fire the ball
     private void Release()
     {
-        releaseEvent = false;
+        releaseFlag = false;
         //Randomise start vector, just picks a random vector between (-1, 1) and (1, 1) (that equates to 90 degrees).
         rb.velocity = Vector3.Normalize(new Vector3(Random.Range(-1f, 1f), 1f, 0f)) * speed;
     }

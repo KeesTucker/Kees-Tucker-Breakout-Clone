@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PaddleController : MonoBehaviour
 {
     private float height;
-    private float xEdge;
+    private float xEdge; //Edge of screen in world space.
 
     private void Start()
     {
@@ -16,8 +14,9 @@ public class PaddleController : MonoBehaviour
 
     private void Update()
     {
+        //Find mouse position in world.
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        //Clamp x so platform can't move off the screen.
+        //Clamp x so platform can't move off the screen and move position to x coordinate of mouse.
         transform.position = new Vector3(Mathf.Clamp(mousePos.x, -xEdge, xEdge), height, 0);
     }
 }

@@ -18,6 +18,7 @@ public class ResizeWalls : MonoBehaviour
         top.transform.position = new Vector3(0, screenBounds.y + 0.5f, 0);
         bottom.transform.position = new Vector3(0, -screenBounds.y - 1.5f, 0);
 
+        //Set collider sizes
         right.GetComponent<BoxCollider>().size = new Vector3(1, screenBounds.y * 2 + 1, 1);
         left.GetComponent<BoxCollider>().size = new Vector3(1, screenBounds.y * 2 + 1, 1);
         top.GetComponent<BoxCollider>().size = new Vector3(screenBounds.x * 2, 1, 1);

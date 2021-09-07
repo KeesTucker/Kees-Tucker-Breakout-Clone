@@ -7,15 +7,16 @@ public class KillController : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
+        //If ball passes bottom of screen
         if (collision.gameObject.CompareTag("Ball"))
         {
             KillPlayer(collision.gameObject.GetComponent<BallController>());
         }
     }
 
-    private void KillPlayer(BallController controller)
+    private void KillPlayer(BallController ballController)
     {
-        gameManager.LoseLife();
-        controller.Reset();
+        gameManager.LoseLife(); //Take a life off player
+        ballController.Reset(); //Reset speed of ball etc
     }
 }

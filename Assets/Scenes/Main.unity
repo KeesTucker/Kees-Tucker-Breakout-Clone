@@ -300,10 +300,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cf28fdd6488c4b468b1d01bdb2ebd65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ballController: {fileID: 1175580836}
+  brickManager: {fileID: 860654888}
   scoreText: {fileID: 2145572230}
   livesText: {fileID: 1785999585}
   gameOverPanel: {fileID: 1830635208}
   endScoreText: {fileID: 1556394307}
+  initalSpeed: 8
+  speedIncreaseSteps: 90010000b0040000
+  speedMultiplierPerIncrease: 1.15
 --- !u!850595691 &358468960
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -789,6 +794,7 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
+  armouredColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &965813674
 GameObject:
   m_ObjectHideFlags: 0
@@ -1067,8 +1073,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1175580831}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.6, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
+  m_LocalPosition: {x: 0, y: -3.5, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -1100,7 +1106,7 @@ SphereCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.15
+  m_Radius: 0.25
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1175580836
 MonoBehaviour:
@@ -1115,6 +1121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 150973083}
+  brickManager: {fileID: 860654888}
   rb: {fileID: 1175580834}
   paddle: {fileID: 618683842}
   releaseKey: 32
