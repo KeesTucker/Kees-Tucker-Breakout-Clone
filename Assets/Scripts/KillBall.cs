@@ -1,18 +1,15 @@
 ﻿using UnityEngine;
 using Mirror;
 
-public class KillController : NetworkBehaviour
+public class KillBall : NetworkBehaviour
 {
-    [SerializeField]
-    private BreakoutManager gameManager;
-
     private void OnTriggerEnter(Collider collision)
     {
         //If ball passes bottom of screen
         if (collision.gameObject.CompareTag("Ball"))
         {
             BallController ballController = collision.gameObject.GetComponent<BallController>();
-            if (ballController.isLocalBall)
+            if (ballController.isLocalBall) //Make sure we are interacting with localPlayer's ball and have authority.
             {
                 KillPlayer(ballController);
             }
@@ -20,9 +17,10 @@ public class KillController : NetworkBehaviour
         }
     }
 
+    //We must be localPlayer's ball so we have authority.
     private void KillPlayer(BallController ballController)
     {
-        ballController.CmdLoseLife(); //Take a life off player
+        ballController.CmdLoseLife(); //Take a life from player
         ballController.Reset(); //Reset speed of ball etc
     }
 }

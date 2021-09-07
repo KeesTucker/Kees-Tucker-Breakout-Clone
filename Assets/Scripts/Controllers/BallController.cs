@@ -10,7 +10,7 @@ public class BallController : NetworkBehaviour
 
     [HideInInspector]
     [SyncVar]
-    public Transform paddle;
+    public Transform paddleTransform;
     [HideInInspector]
     [SyncVar]
     public PaddleController paddleController;
@@ -18,15 +18,15 @@ public class BallController : NetworkBehaviour
     [SerializeField]
     private KeyCode releaseKey; //Keycode the user must press to release the ball.
     [SerializeField]
-    private float colliderReboundRandomiseMax = 0.1f;
+    private float colliderReboundRandomiseMax = 0.1f; //Value to randomise collision rebounds
     [SerializeField]
     private Vector3 startOffset = Vector3.zero; //Offset for respawning ball on paddle.
 
     [HideInInspector]
-    public bool isLocalBall = false;
+    public bool isLocalBall = false; //Are we connected to the localPlayer.
     [HideInInspector]
     [SyncVar]
-    public float speed;
+    public float speed; //Linear speed of ball, is adjusted as game progresses.
 
     public bool released = false; //Keeps track of whether ball is attached to paddle or game has started.
     public bool releaseFlag = false; //Triggers the Release() method in FixedUpdate() so physics are handled in FixedUpdate() instead of Update().
@@ -59,9 +59,9 @@ public class BallController : NetworkBehaviour
                 releaseFlag = true;
             }
             //Make ball follow paddle.
-            if (!released && paddle)
+            if (!released && paddleTransform)
             {
-                transform.position = paddle.transform.position + startOffset;
+                transform.position = paddleTransform.position + startOffset;
             }
         }
     }
@@ -89,24 +89,24 @@ public class BallController : NetworkBehaviour
             }
             else if (collision.gameObject.CompareTag("Paddle"))
             {
-                PaddleCollision(paddleController.velocity);
+                PaddleCollision(paddleController.paddleVelocity);
             }
-            AddRandomVelocity(); //Stops ball from getting stuck perfectly horizontal or vertical. Little janky, but a decent fix for now.
+            AddRandomVelocity();
         }
     }
 
     [Command]
     private void CmdBrickCollision(GameObject other)
     {
-        BrickController controller = other.GetComponent<BrickController>();
-        if (controller.armouredBrick) //If its an armoured brick turn it into a normal brick.
+        BrickColorGenerator generator = other.GetComponent<BrickColorGenerator>();
+        if (generator.armouredBrick) //If its an armoured brick turn it into a normal brick.
         {
-            controller.armouredBrick = false;
-            controller.RpcSetNoArmourColour(); //Set it's colour to that of a normal brick.
+            generator.armouredBrick = false;
+            generator.RpcSetNormalBrickColour(); //Set it's colour to that of a normal brick.
         }
         else //Otherwise destroy this brick
         {
-            gameManager.IncreaseScore(controller.brickLevel, this);
+            gameManager.IncreaseScore(generator.brickLevel, this);
             Destroy(other.gameObject);
         }
         rb.velocity = Vector3.Normalize(rb.velocity) * speed;
@@ -117,13 +117,14 @@ public class BallController : NetworkBehaviour
         rb.velocity = Vector3.Normalize(rb.velocity + velocityOfCollision) * speed; //Impart velocity of paddle on ball to give friction approximation.
     }
 
+    //Randomise rebounds to avoid ball from getting stuck perfectly horizontal or vertical. Not the most elegant [WIP]
     private void AddRandomVelocity()
     {
         float randomisationAmount = Random.Range(-colliderReboundRandomiseMax, colliderReboundRandomiseMax); //Calculate small random value to add to velocity, use same value for x and y as there is no point it being different.
         rb.velocity = Vector3.Normalize(rb.velocity + new Vector3(randomisationAmount, randomisationAmount, 0)) * speed; //Modify velocity
     }
 
-    //Player died, reset their velocity and released flag. Kill controller fires this.
+    //Player died, reset their velocity and released flag. Kill controller fires this. We are the localPlayer's ball.
     public void Reset()
     {
         rb.velocity = Vector2.zero;
