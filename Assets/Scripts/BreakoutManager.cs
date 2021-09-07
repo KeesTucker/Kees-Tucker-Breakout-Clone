@@ -15,18 +15,19 @@ public class BreakoutManager : NetworkBehaviour
     private TMPro.TMP_Text scoreText;
     [SerializeField]
     private TMPro.TMP_Text livesText;
-
     [SerializeField]
-    private Transform wallRight;
-    [SerializeField]
-    private Transform wallTop;
-
-    [SerializeField]
-    private GameObject gameOverPanel;
+    private GameObject gameEndPanel;
     [SerializeField]
     private Button restartButton;
     [SerializeField]
     private TMPro.TMP_Text endScoreText;
+    [SerializeField]
+    private TMPro.TMP_Text endText;
+    
+    [SerializeField]
+    private Transform wallRight;
+    [SerializeField]
+    private Transform wallTop;
 
     public float initalSpeed = 5f;
     [SerializeField]
@@ -34,6 +35,8 @@ public class BreakoutManager : NetworkBehaviour
     [SerializeField]
     private float speedMultiplierPerIncrease = 1.2f; //How much to increase speed for each increase in speed, this is multiplicative.
 
+    [HideInInspector]
+    public int numBricks;
     private int score = 0;
     private int lives = 3;
     private int maxBrickLevel = 0; 
@@ -61,8 +64,16 @@ public class BreakoutManager : NetworkBehaviour
     public void IncreaseScore(int brickLevel, BallController ballController)
     {
         score += POINTSPERBLOCK;
-        RpcIncreaseScore(score);
-        CalculateSpeed(brickLevel, ballController);
+        if (score >= POINTSPERBLOCK * numBricks)
+        {
+            RpcEndGame(true, score);
+        }
+        else
+        {
+            RpcIncreaseScore(score);
+            CalculateSpeed(brickLevel, ballController);
+        }
+        
     }
 
     [ClientRpc]
@@ -106,7 +117,7 @@ public class BreakoutManager : NetworkBehaviour
         }
         else
         {
-            RpcGameOver(score);            
+            RpcEndGame(false, score);            
         }
     }
 
@@ -117,9 +128,18 @@ public class BreakoutManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void RpcGameOver(int score)
+    public void RpcEndGame(bool win, int score)
     {
-        gameOverPanel.SetActive(true); //Show game over UI
+        ballController.Reset();
+        gameEndPanel.SetActive(true); //Show game end UI
+        if (win)
+        {
+            endText.text = "You Won";
+        }
+        else
+        {
+            endText.text = "You Lost";
+        }
         if (!isServer)
         {
             restartButton.interactable = false;
@@ -139,8 +159,7 @@ public class BreakoutManager : NetworkBehaviour
     [ClientRpc]
     private void RpcRestart()
     {
-        gameOverPanel.SetActive(false); //Hide game over UI
-        ballController.Reset();
+        gameEndPanel.SetActive(false); //Hide game over UI
     }
 
     private void ResetLivesAndScores()

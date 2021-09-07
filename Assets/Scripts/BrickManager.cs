@@ -4,6 +4,9 @@ using Mirror;
 public class BrickManager : NetworkBehaviour
 {
     [SerializeField]
+    private BreakoutManager gameManager;
+
+    [SerializeField]
     private GameObject brickGO;
     private GameObject[,] bricks;
 
@@ -42,6 +45,8 @@ public class BrickManager : NetworkBehaviour
             {
                 for (int y = numBricksStartHeight; y < height; y++)
                 {
+                    gameManager.numBricks++;
+
                     bricks[x, y] = Instantiate(brickGO);
                     bricks[x, y].transform.parent = transform;
                     //Position bricks, make sure y positions are half of x as the bricks are half as high as they are wide. We divide y by 2 as bricks are half as high as they are wide.
