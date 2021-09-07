@@ -309,6 +309,7 @@ MonoBehaviour:
   livesText: {fileID: 1785999585}
   gameEndPanel: {fileID: 1830635208}
   restartButton: {fileID: 965813676}
+  restartText: {fileID: 1570617954}
   endScoreText: {fileID: 1556394307}
   endText: {fileID: 31237606}
   wallRight: {fileID: 804892893}

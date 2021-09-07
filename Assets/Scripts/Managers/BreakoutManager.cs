@@ -7,6 +7,7 @@ public class BreakoutManager : NetworkBehaviour
 {
     private const int POINTS_PER_BLOCK = 100;
     private const float COLLIDER_WIDTH = 1f;
+    private const float BORDER_SIZE = 0.1f;
 
     [SerializeField]
     private BrickManager brickManager;
@@ -22,6 +23,8 @@ public class BreakoutManager : NetworkBehaviour
     private GameObject gameEndPanel;
     [SerializeField]
     private Button restartButton;
+    [SerializeField]
+    private TMPro.TMP_Text restartText;
     [SerializeField]
     private TMPro.TMP_Text endScoreText;
     [SerializeField]
@@ -55,15 +58,22 @@ public class BreakoutManager : NetworkBehaviour
             ResizeCamOnClient(); //Make sure client's camera's are sized to fit grid size.
         }
         UpdateLivesAndScores(); //Make sure UI is updated
+        StartCoroutine(AddCamBorder()); //Just zoom the cam out a bit so we get some breathing room. Bit hacky.
     }
-
-
 
     private void ResizeCamOnClient()
     {
         float width = wallRight.transform.position.x - COLLIDER_WIDTH / 2f;
         float height = wallTop.transform.position.y - COLLIDER_WIDTH / 2f;
         Camera.main.orthographicSize = Mathf.Max(width / Camera.main.aspect, height);
+    }
+
+    //Wait for a frame so that the server has finished calculating the grid size and colliders etc.
+    //We need to wait because they use the edge of the viewport in their calculations. Not very sexy [WIP].
+    private IEnumerator AddCamBorder()
+    {
+        yield return new WaitForEndOfFrame();
+        Camera.main.orthographicSize *= 1f + BORDER_SIZE;
     }
 
     private void ResetLivesAndScores()
@@ -138,6 +148,12 @@ public class BreakoutManager : NetworkBehaviour
         if (!isServer)
         {
             restartButton.interactable = false;
+            restartText.text = "Restart On Host";
+        }
+        else
+        {
+            restartButton.interactable = false;
+            restartText.text = "Restart";
         }
         endScoreText.text = "Score: " + score.ToString();
     }

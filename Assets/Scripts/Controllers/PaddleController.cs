@@ -1,15 +1,20 @@
 ﻿using UnityEngine;
+using System.Collections;
 using Mirror;
 
 public class PaddleController : NetworkBehaviour
 {
+    private const float COLLIDER_WIDTH = 1f;
+
     [SerializeField]
     private GameObject ballGO;
+    private Transform rightWallTransform;
     [SyncVar]
     private BallController ballController;
 
     [SyncVar]
     private float heightOfPaddle;
+    [SerializeField]
     private float xEdge; //Edge of screen in world space.
 
     [SerializeField] //Arbitrary units, uses an approximation of friction based on velocity to allow player to move paddle and influence rebound of ball.
@@ -19,8 +24,9 @@ public class PaddleController : NetworkBehaviour
     [HideInInspector]
     public Vector3 paddleVelocity;
 
-    private void Start()
+    private IEnumerator Start()
     {
+        rightWallTransform = GameObject.Find("WallRight").transform; //Just grab the right wall so we can use it for clamping the paddle movement
         if (isServer)
         {
             GameObject ball = Instantiate(ballGO);
@@ -37,11 +43,11 @@ public class PaddleController : NetworkBehaviour
             float heightOffset = 1.5f + 0.75f * countID;
             heightOfPaddle = -Camera.main.ViewportToWorldPoint(new Vector3(0, 1f, 0)).y + heightOffset;
         }
-
+        yield return new WaitForEndOfFrame();
         if (isLocalPlayer)
         {
-            //Find x coordinate at the right most part of the screen and then subtract half width of platform, we use this to clamp the x position of platform.
-            xEdge = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0, 0)).x - (transform.localScale.x / 2f);
+            //Find x coordinate at the right most part of the play area and then subtract half width of platform and the collider, we use this to clamp the x position of platform.
+            xEdge = rightWallTransform.position.x - (COLLIDER_WIDTH / 2f) - (transform.localScale.x / 2f);
         }
         else //Else gray out other players
         {
