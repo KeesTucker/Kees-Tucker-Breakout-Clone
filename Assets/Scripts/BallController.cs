@@ -5,6 +5,8 @@ using UnityEngine;
 public class BallController : MonoBehaviour
 {
     [SerializeField]
+    private BreakoutManager gameManager;
+    [SerializeField]
     private Rigidbody rb;
     [SerializeField]
     private Transform paddle;
@@ -54,6 +56,7 @@ public class BallController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Brick"))
         {
+            gameManager.IncreaseScore();
             rb.velocity = Vector3.Normalize(rb.velocity) * speed;
             Destroy(collision.gameObject);
         }
