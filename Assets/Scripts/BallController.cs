@@ -15,6 +15,9 @@ public class BallController : MonoBehaviour
 
     [SerializeField]
     private KeyCode releaseKey; //Keycode the user must press to release the ball.
+    [SerializeField]
+    private float colliderReboundRandomiseMax = 0.1f;
+
     [HideInInspector]
     public float speed;
 
@@ -58,24 +61,40 @@ public class BallController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Brick"))
         {
-            BrickInfo info = collision.gameObject.GetComponent<BrickInfo>();
-            if (info.armouredBrick) //If its an armoured brick turn it into a normal brick.
-            {
-                info.armouredBrick = false;
-                brickManager.SetBrickColor(info); //Set it's colour to that of a normal brick.
-            }
-            else //Otherwise destroy this brick
-            {
-                gameManager.IncreaseScore(info.brickLevel);
-                Destroy(collision.gameObject);
-            }
-            rb.velocity = Vector3.Normalize(rb.velocity) * speed;
+            BrickCollision(collision.gameObject);
         }
         else if (collision.gameObject.CompareTag("Paddle"))
         {
-            rb.velocity = Vector3.Normalize(rb.velocity + paddleController.velocity) * speed; //Impart velocity of paddle on ball to give friction approximation.
+            PaddleCollision();
         }
-        
+        AddRandomVelocity(); //Stops ball from getting stuck perfectly horizontal or vertical. Little janky, but a decent fix for now.
+    }
+
+    private void BrickCollision(GameObject other)
+    {
+        BrickInfo info = other.GetComponent<BrickInfo>();
+        if (info.armouredBrick) //If its an armoured brick turn it into a normal brick.
+        {
+            info.armouredBrick = false;
+            brickManager.SetBrickColor(info); //Set it's colour to that of a normal brick.
+        }
+        else //Otherwise destroy this brick
+        {
+            gameManager.IncreaseScore(info.brickLevel);
+            Destroy(other.gameObject);
+        }
+        rb.velocity = Vector3.Normalize(rb.velocity) * speed;
+    }
+
+    private void PaddleCollision()
+    {
+        rb.velocity = Vector3.Normalize(rb.velocity + paddleController.velocity) * speed; //Impart velocity of paddle on ball to give friction approximation.
+    }
+
+    private void AddRandomVelocity()
+    {
+        float randomisationAmount = Random.Range(-colliderReboundRandomiseMax, colliderReboundRandomiseMax); //Calculate small random value to add to velocity, use same value for x and y as there is no point it being different.
+        rb.velocity = Vector3.Normalize(rb.velocity + new Vector3(randomisationAmount, randomisationAmount, 0)) * speed; //Modify velocity
     }
 
     //Player died, reset their velocity and released flag. Kill controller fires this.
