@@ -13,12 +13,12 @@ public class ResizeWalls : NetworkBehaviour
     [SerializeField] private GameObject top;
     [SerializeField] private GameObject bottom;
 
-    //This is unimportant, I just wanted the colliders to resize to the screen dimensions
     public override void OnStartServer()
     {
         screenBounds = new Vector2(Constants.CAM_SIZE * Camera.main.aspect, Constants.CAM_SIZE);
     }
 
+    //Resize colliders to the screen dimensions
     public override void OnStartClient()
     {
         Vector2 screenSizes = screenBounds * 2f;

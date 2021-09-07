@@ -43,7 +43,7 @@ public class PaddleController : NetworkBehaviour
         }
         if (isLocalPlayer)
         {
-            //Find x coordinate at the right most part of the play area and then subtract half width of platform and the collider, we use this to clamp the x position of platform.
+            //Find world space x coordinate at the right most part of the grid.
             xEdge = Constants.CAM_SIZE * aspectRatio - (transform.localScale.x / 2f);
         }
         else //Else gray out other players
