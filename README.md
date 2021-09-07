@@ -12,3 +12,6 @@
 Controls:
 - Space to release the ball
 - Move mouse to move the paddle
+
+Deviation:
+- I didn't stagger the height of the paddles as shown in multiplayer diagram, my reasoning was because I wanted both players to be able to interact with eachothers balls (so they could "save" eachother) and having one paddle higher up the grid felt very strange and intefered a lot.
