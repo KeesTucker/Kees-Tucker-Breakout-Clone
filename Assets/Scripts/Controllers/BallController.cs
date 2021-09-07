@@ -7,14 +7,6 @@ public class BallController : NetworkBehaviour
 
     [SerializeField]
     private Rigidbody rb;
-
-    [HideInInspector]
-    [SyncVar]
-    public Transform paddleTransform;
-    [HideInInspector]
-    [SyncVar]
-    public PaddleController paddleController;
-
     [SerializeField]
     private KeyCode releaseKey; //Keycode the user must press to release the ball.
     [SerializeField]
@@ -23,12 +15,20 @@ public class BallController : NetworkBehaviour
     private Vector3 startOffset = Vector3.zero; //Offset for respawning ball on paddle.
 
     [HideInInspector]
-    public bool isLocalBall = false; //Are we connected to the localPlayer.
+    [SyncVar]
+    public Transform paddleTransform;
+    [HideInInspector]
+    [SyncVar]
+    public PaddleController paddleController;
     [HideInInspector]
     [SyncVar]
     public float speed; //Linear speed of ball, is adjusted as game progresses.
 
+    [HideInInspector]
+    public bool isLocalBall = false; //Are we connected to the localPlayer.
+    [HideInInspector]
     public bool released = false; //Keeps track of whether ball is attached to paddle or game has started.
+    [HideInInspector]
     public bool releaseFlag = false; //Triggers the Release() method in FixedUpdate() so physics are handled in FixedUpdate() instead of Update().
 
     private void Start()

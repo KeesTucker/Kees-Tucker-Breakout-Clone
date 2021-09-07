@@ -305,6 +305,9 @@ MonoBehaviour:
   syncInterval: 0.1
   brickManager: {fileID: 860654888}
   ballController: {fileID: 0}
+  initalSpeed: 8
+  speedIncreaseSteps: 90010000b0040000
+  speedMultiplierPerIncrease: 1.1
   scoreText: {fileID: 2145572230}
   livesText: {fileID: 1785999585}
   gameEndPanel: {fileID: 1830635208}
@@ -312,11 +315,6 @@ MonoBehaviour:
   restartText: {fileID: 1570617954}
   endScoreText: {fileID: 1556394307}
   endText: {fileID: 31237606}
-  wallRight: {fileID: 804892893}
-  wallTop: {fileID: 1272549534}
-  initalSpeed: 8
-  speedIncreaseSteps: 90010000b0040000
-  speedMultiplierPerIncrease: 1.1
   numBricks: 0
 --- !u!114 &150973084
 MonoBehaviour:
@@ -995,7 +993,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.6037736, g: 0.6037736, b: 0.6037736, a: 1}
     m_PressedColor: {r: 0.2830189, g: 0.2830189, b: 0.2830189, a: 1}
     m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_DisabledColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 0.5019608}
+    m_DisabledColor: {r: 0.3207547, g: 0.3207547, b: 0.3207547, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:

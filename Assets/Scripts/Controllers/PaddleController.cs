@@ -8,17 +8,17 @@ public class PaddleController : NetworkBehaviour
 
     [SerializeField]
     private GameObject ballGO;
-    [SyncVar]
-    private BallController ballController;
-
-    [SyncVar]
-    private float heightOfPaddle;
-    [SerializeField]
-    private float xEdge; //Edge of screen in world space.
-
     [SerializeField] //Arbitrary units, uses an approximation of friction based on velocity to allow player to move paddle and influence rebound of ball.
     private float friction = 100f;
 
+    [SyncVar]
+    private BallController ballController;
+    [SyncVar]
+    private float heightOfPaddle;
+    [SyncVar]
+    private float aspectRatio;
+
+    private float xEdge; //Edge of screen in world space.
     private float oldPaddleX; //Old x coord of cursor/paddle, used for speed calcs.
     [HideInInspector]
     public Vector3 paddleVelocity;
@@ -27,6 +27,8 @@ public class PaddleController : NetworkBehaviour
     {
         if (isServer)
         {
+            aspectRatio = Camera.main.aspect;
+
             GameObject ball = Instantiate(ballGO);
             ball.transform.position = new Vector3(0, -100, 0); //Make sure ball doesnt interfere with game on spawn
             //Not really ideal to make ball client side as hacks etc could modify its position and the server would accept it. Can't remember if Mirror checks back with the server etc to make sure nothing crazy has happened. Need to look into that.
@@ -36,12 +38,13 @@ public class PaddleController : NetworkBehaviour
             ballController = ball.GetComponent<BallController>();
             ballController.paddleTransform = transform;
             ballController.paddleController = this;
+
             heightOfPaddle = -Constants.CAM_SIZE + PADDLE_HEIGHT_OFFSET;
         }
         if (isLocalPlayer)
         {
             //Find x coordinate at the right most part of the play area and then subtract half width of platform and the collider, we use this to clamp the x position of platform.
-            xEdge = Constants.CAM_SIZE * Camera.main.aspect - (transform.localScale.x / 2f);
+            xEdge = Constants.CAM_SIZE * aspectRatio - (transform.localScale.x / 2f);
         }
         else //Else gray out other players
         {

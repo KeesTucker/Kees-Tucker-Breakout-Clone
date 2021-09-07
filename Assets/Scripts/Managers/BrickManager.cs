@@ -5,11 +5,9 @@ public class BrickManager : NetworkBehaviour
 {
     [SerializeField]
     private BreakoutManager gameManager;
-
     [SerializeField]
     private GameObject brickGO;
     private GameObject[,] bricks;
-
     [SerializeField] 
     [Range(2, 64)]
     private int width = 10;
@@ -21,7 +19,6 @@ public class BrickManager : NetworkBehaviour
     
     private float gridScale; //Scale factor to fit grid to screen
     private float brickHeightOffset; //Just use this to make sure bricks line up nicely with top of screen.
-
     private float halfWidth;
     private float halfHeight;
     private int numBricksStartHeight; //Holds percentage converted to number of blocks.
@@ -80,6 +77,13 @@ public class BrickManager : NetworkBehaviour
         }
     }
 
+    //Just makes sure the grid is fit to the screen properly. Only on server, clients resize their cams to the grid.
+    private void ScaleGrid()
+    {
+        gridScale = Constants.CAM_SIZE * 2 * Camera.main.aspect / width;
+        brickHeightOffset = Constants.CAM_SIZE - gridScale * height / 4f;
+    }
+
     public void DestroyBricks() //Brick manager also uses this to reset bricks
     {
         if (isServer)
@@ -93,12 +97,5 @@ public class BrickManager : NetworkBehaviour
             }
             bricks = new GameObject[width, height];
         }
-    }
-
-    //Just makes sure the grid is fit to the screen properly. Only on server, clients resize their cams to the grid.
-    private void ScaleGrid()
-    {
-        gridScale = Constants.CAM_SIZE * 2 * Camera.main.aspect / width;
-        brickHeightOffset = Constants.CAM_SIZE - gridScale * height / 4f;
     }
 }

@@ -12,6 +12,11 @@ public class BreakoutManager : NetworkBehaviour
     private BrickManager brickManager;
     [HideInInspector]
     public BallController ballController;
+    public float initalSpeed = 5f;
+    [SerializeField]
+    private int[] speedIncreaseSteps = { 400, 1200 }; //Holds "score steps" which are basically just scores that trigger a speed increase when our score superscedes them.
+    [SerializeField]
+    private float speedMultiplierPerIncrease = 1.2f; //How much to increase speed for each increase in speed, this is multiplicative.
 
     //UI references
     [SerializeField]
@@ -29,26 +34,14 @@ public class BreakoutManager : NetworkBehaviour
     [SerializeField]
     private TMPro.TMP_Text endText;
 
-    //References to collider walls for an easy way to figure out camera size on client. Little bit funky, should probably replace with a more robust system.
-    //[WIP]
-    [SerializeField]
-    private Transform wallRight;
-    [SerializeField]
-    private Transform wallTop;
-
-    public float initalSpeed = 5f;
-    [SerializeField]
-    private int[] speedIncreaseSteps = { 400, 1200 }; //Holds "score steps" which are basically just scores that trigger a speed increase when our score superscedes them.
-    [SerializeField]
-    private float speedMultiplierPerIncrease = 1.2f; //How much to increase speed for each increase in speed, this is multiplicative.
-
-    [HideInInspector]
-    public int numBricks; //Total number of bricks.
     [SyncVar]
     private int score = 0;
     [SyncVar]
     private int lives = 3;
     private int maxBrickLevel = 0;
+
+    [HideInInspector]
+    public int numBricks; //Total number of bricks.
 
     public override void OnStartClient()
     {
@@ -66,9 +59,9 @@ public class BreakoutManager : NetworkBehaviour
 
     private void ResizeCamOnClient()
     {
-        float width = wallRight.transform.position.x - Constants.COLLIDER_THICKNESS / 2f;
-        float height = wallTop.transform.position.y - Constants.COLLIDER_THICKNESS / 2f;
-        Camera.main.orthographicSize = Mathf.Max(width / Camera.main.aspect, height);
+        float width = Constants.CAM_SIZE / Camera.main.aspect * 2f;
+        float height = Constants.CAM_SIZE;
+        Camera.main.orthographicSize = Mathf.Max(width, height);
     }
 
     private void ResetLivesAndScores()

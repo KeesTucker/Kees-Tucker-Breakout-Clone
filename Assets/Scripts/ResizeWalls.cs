@@ -5,6 +5,7 @@ public class ResizeWalls : NetworkBehaviour
 {
     private const float HALF_COLLIDER_THICNKESS = Constants.COLLIDER_THICKNESS / 2f;
 
+    [SyncVar]
     private Vector2 screenBounds; //Edges of screen on positive axis
 
     [SerializeField] private GameObject left;
