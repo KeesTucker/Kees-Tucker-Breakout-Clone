@@ -8,17 +8,17 @@ public class BrickManager : MonoBehaviour
     private GameObject brickGO;
     private GameObject[,] bricks;
 
-    
-    [SerializeField][Range(2, 64)]
+    [SerializeField] [Range(2, 64)]
     private int width = 16;
-    [SerializeField][Range(2, 64)]
+    [SerializeField] [Range(2, 64)]
     private int height = 16;
-    [SerializeField][Range(0, 1)]
+    [SerializeField] [Range(0, 1)]
     private float brickStartHeight = 0.5f; //Percentage of vertical screen to fill with bricks.
-
+    [SerializeField]
+    Gradient colorGradient;
 
     private float gridScale; //Scale factor to fit grid to screen
-    private float brickOffsetHeight = 0.5f; //Just use this to make sure bricks line up nicely with top of screen.
+    private float brickOffsetHeight; //Just use this to make sure bricks line up nicely with top of screen.
 
     private float halfWidth;
     private float halfHeight;
@@ -46,8 +46,10 @@ public class BrickManager : MonoBehaviour
                 bricks[x, y] = Instantiate(brickGO);
                 bricks[x, y].transform.parent = transform;
                 //Position bricks, make sure y positions are half of x as the bricks are half as high as they are wide.
-                bricks[x, y].transform.position = new Vector2(x - halfWidth, (y - halfHeight) / 2f - brickOffsetHeight) * gridScale;
+                bricks[x, y].transform.position = new Vector2((x - halfWidth) * gridScale, (y - halfHeight) / 2f * gridScale + brickOffsetHeight);
                 bricks[x, y].transform.localScale = new Vector2(gridScale, gridScale);
+
+                bricks[x, y].transform.GetChild(0).GetComponent<SpriteRenderer>().color = colorGradient.Evaluate((float)(y - numBricksStartHeight) / height / brickStartHeight);
             }
         }
     }
@@ -56,6 +58,6 @@ public class BrickManager : MonoBehaviour
     private void ScaleGrid()
     {
         gridScale = Camera.main.ViewportToWorldPoint(new Vector2(1f, 0)).x * 2 / width;
-        brickOffsetHeight = Camera.main.ViewportToWorldPoint(new Vector2(0, 1f)).y - gridScale * height / 4f;
+        brickOffsetHeight = (Camera.main.ViewportToWorldPoint(new Vector2(0, 1f)).y) - (gridScale * height / 4f);
     }
 }
