@@ -5,15 +5,19 @@ using UnityEngine;
 public class PaddleController : MonoBehaviour
 {
     private float height;
+    private float xEdge;
 
     private void Start()
     {
         height = transform.position.y;
+        //Find x coordinate at the right most part of the screen and then subtract half width of platform, we use this to clamp the x position of platform.
+        xEdge = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0, 0)).x - (transform.localScale.x / 2f);
     }
 
     private void Update()
     {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        transform.position = new Vector3(mousePos.x, height);
+        //Clamp x so platform can't move off the screen.
+        transform.position = new Vector3(Mathf.Clamp(mousePos.x, -xEdge, xEdge), height);
     }
 }
