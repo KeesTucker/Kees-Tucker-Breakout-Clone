@@ -306,6 +306,8 @@ MonoBehaviour:
   brickManager: {fileID: 860654888}
   scoreText: {fileID: 2145572230}
   livesText: {fileID: 1785999585}
+  wallRight: {fileID: 804892893}
+  wallTop: {fileID: 1272549534}
   gameOverPanel: {fileID: 1830635208}
   restartButton: {fileID: 965813676}
   endScoreText: {fileID: 1556394307}

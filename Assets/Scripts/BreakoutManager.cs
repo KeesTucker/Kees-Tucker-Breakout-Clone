@@ -10,16 +10,21 @@ public class BreakoutManager : NetworkBehaviour
     private BrickManager brickManager;
 
     [SerializeField]
-    TMPro.TMP_Text scoreText;
+    private TMPro.TMP_Text scoreText;
     [SerializeField]
-    TMPro.TMP_Text livesText;
+    private TMPro.TMP_Text livesText;
 
     [SerializeField]
-    GameObject gameOverPanel;
+    private Transform wallRight;
     [SerializeField]
-    Button restartButton;
+    private Transform wallTop;
+
     [SerializeField]
-    TMPro.TMP_Text endScoreText;
+    private GameObject gameOverPanel;
+    [SerializeField]
+    private Button restartButton;
+    [SerializeField]
+    private TMPro.TMP_Text endScoreText;
 
     public float initalSpeed = 5f;
     [SerializeField]
@@ -34,6 +39,21 @@ public class BreakoutManager : NetworkBehaviour
     public override void OnStartServer()
     {
         ResetLivesAndScores(); //Make sure UI is updated.
+    }
+
+    public override void OnStartClient()
+    {
+        if (!isServer)
+        {
+            ResizeCamOnClient();
+        }
+    }
+
+    private void ResizeCamOnClient()
+    {
+        float width = wallRight.transform.position.x - 0.5f;
+        float height = wallTop.transform.position.y - 0.5f;
+        Camera.main.orthographicSize = Mathf.Max(width / Camera.main.aspect, height);
     }
 
     public void IncreaseScore(int brickLevel, BallController ballController)
