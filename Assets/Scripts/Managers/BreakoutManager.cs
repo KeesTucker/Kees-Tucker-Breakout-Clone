@@ -5,34 +5,19 @@ using System.Collections;
 
 public class BreakoutManager : NetworkBehaviour
 {
-    private const int POINTS_PER_BLOCK = 100;
-    private const float BORDER_SIZE = 0.1f;
-
     [SerializeField]
     private BrickManager brickManager;
+    [SerializeField]
+    private UIHelper uIHelper;
     [HideInInspector]
     public BallController ballController;
+    [SerializeField]
+    private int pointsPerBlock = 100;
     public float initalSpeed = 5f;
     [SerializeField]
     private int[] speedIncreaseSteps = { 400, 1200 }; //Holds "score steps" which are basically just scores that trigger a speed increase when our score superscedes them.
     [SerializeField]
     private float speedMultiplierPerIncrease = 1.2f; //How much to increase speed for each increase in speed, this is multiplicative.
-
-    //UI references
-    [SerializeField]
-    private TMPro.TMP_Text scoreText;
-    [SerializeField]
-    private TMPro.TMP_Text livesText;
-    [SerializeField]
-    private GameObject gameEndPanel;
-    [SerializeField]
-    private Button restartButton;
-    [SerializeField]
-    private TMPro.TMP_Text restartText;
-    [SerializeField]
-    private TMPro.TMP_Text endScoreText;
-    [SerializeField]
-    private TMPro.TMP_Text endText;
 
     [SyncVar]
     private int score = 0;
@@ -45,68 +30,41 @@ public class BreakoutManager : NetworkBehaviour
 
     public override void OnStartClient()
     {
-        if (!isServer)
-        {
-            ResizeCamOnClient(); //Make sure client's camera's are sized to fit grid size.
-        }
-        else
-        {
-            Camera.main.orthographicSize = Constants.CAM_SIZE;
-        }
-        UpdateLivesAndScores(); //Make sure UI is updated
-        Camera.main.orthographicSize *= 1f + BORDER_SIZE;
+        uIHelper.UpdateLivesAndScores(lives, score); //Make sure UI is updated
     }
 
-    private void ResizeCamOnClient()
-    {
-        float width = Constants.CAM_SIZE / Camera.main.aspect * 2f;
-        float height = Constants.CAM_SIZE;
-        Camera.main.orthographicSize = Mathf.Max(width, height);
-    }
-
+    [Server]
     private void ResetLivesAndScores()
     {
         lives = 3;
         score = 0;
-        UpdateLivesAndScores();
+        uIHelper.UpdateLivesAndScores(lives, score);
     }
 
-    private void UpdateLivesAndScores()
-    {
-        livesText.text = "Lives: " + lives.ToString();
-        scoreText.text = "Score: " + score.ToString();
-    }
-
-    //Server side
+    [Server]
     public void IncreaseScore(int brickLevel, BallController ballController)
     {
-        score += POINTS_PER_BLOCK;
+        score += pointsPerBlock;
         //Win condition, means we have destroyed all bricks
-        if (score >= POINTS_PER_BLOCK * numBricks)
+        if (score >= pointsPerBlock * numBricks)
         {
             RpcEndGame(true, score);
         }
         else //Otherwise just increase score on clients UI and do a speed calculation
         {
-            RpcUpdateScore(score);
+            RpcUpdateLivesAndScore(lives, score);
             CalculateSpeed(brickLevel, ballController);
         }
         
     }
 
-    [ClientRpc]
-    private void RpcUpdateScore(int score)
-    {
-        scoreText.text = "Score: " + score.ToString();
-    }
-
-    //Server side
+    [Server]
     public void LoseLife()
     {
         if (lives > 1)
         {
             lives--;
-            RpcUpdateLife(lives); //Update UI
+            RpcUpdateLivesAndScore(lives, score);
         }
         else //Lose condition
         {
@@ -114,59 +72,20 @@ public class BreakoutManager : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    private void RpcUpdateLife(int lives)
+    [Server]
+    public void Restart() //Restart button function
     {
-        livesText.text = "Lives: " + lives.ToString();
-    }
+        ResetLivesAndScores();
 
-    [ClientRpc]
-    public void RpcEndGame(bool win, int score) //Game end UI function
-    {
-        ballController.Reset();
-        gameEndPanel.SetActive(true); //Show game end UI
-        if (win)
-        {
-            endText.text = "You Won";
-        }
-        else
-        {
-            endText.text = "You Lost";
-        }
-        if (!isServer)
-        {
-            restartButton.interactable = false;
-            restartText.text = "Restart On Host";
-        }
-        else
-        {
-            restartButton.interactable = true;
-            restartText.text = "Restart";
-        }
-        endScoreText.text = "Score: " + score.ToString();
-    }
-
-    //Server side, only called from restart button which is only interactable on server.
-    public void Restart()
-    {
         RpcRestart();
-        ResetLivesAndScores(); //Update sync vars for new clients.
-        //Sync vars don't update fast enough so pass the reset values through.
-        RpcUpdateLife(3); 
-        RpcUpdateScore(0);
 
         //Reset bricks
         brickManager.DestroyBricks();
         brickManager.CreateBricks();
     }
 
-    [ClientRpc]
-    private void RpcRestart()
-    {
-        gameEndPanel.SetActive(false); //Hide game over UI
-    }
-
     //Increases speed based on score and the max level brick we have destroyed. This introduces a difficulty curve.
+    [Server]
     private void CalculateSpeed(int brickLevel, BallController ballController)
     {
         ballController.speed = initalSpeed;
@@ -190,5 +109,25 @@ public class BreakoutManager : NetworkBehaviour
             maxBrickLevel = brickLevel;
         }
         ballController.speed *= Mathf.Pow(speedMultiplierPerIncrease, maxBrickLevel);
+    }
+
+    [ClientRpc]
+    private void RpcUpdateLivesAndScore(int lives, int score)
+    {
+        uIHelper.UpdateLivesAndScores(lives, score);
+    }
+
+    [ClientRpc]
+    private void RpcRestart()
+    {
+        uIHelper.UpdateLivesAndScores(lives, score);
+        uIHelper.HideEndPanel();
+    }
+
+    [ClientRpc]
+    public void RpcEndGame(bool win, int score) //Game end UI function
+    {
+        ballController.Reset();
+        uIHelper.ShowEndPanel(win, isServer, score);
     }
 }

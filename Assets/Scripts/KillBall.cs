@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using Mirror;
 
-public class KillBall : NetworkBehaviour
+public class KillBall : MonoBehaviour
 {
     private void OnTriggerEnter(Collider collision)
     {
@@ -9,7 +8,7 @@ public class KillBall : NetworkBehaviour
         if (collision.gameObject.CompareTag("Ball"))
         {
             BallController ballController = collision.gameObject.GetComponent<BallController>();
-            if (ballController.isLocalBall) //Make sure we are interacting with localPlayer's ball and have authority.
+            if (ballController.hasAuthority) //Make sure we are interacting with localPlayer's ball and have authority.
             {
                 KillPlayer(ballController);
             }

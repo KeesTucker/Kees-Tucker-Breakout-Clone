@@ -7,18 +7,19 @@ public class BrickManager : NetworkBehaviour
     private BreakoutManager gameManager;
     [SerializeField]
     private GameObject brickGO;
-    private GameObject[,] bricks;
+    private GameObject[] bricks;
     [SerializeField] 
     [Range(2, 64)]
     private int width = 10;
     [SerializeField]
     [Range(2, 64)]
     private int height = 10;
-    [Range(0, 1)]
     public float brickStartHeight = 0.5f; //Percentage of vertical screen to fill with bricks.
-    
-    private float gridScale; //Scale factor to fit grid to screen
-    private float brickHeightOffset; //Just use this to make sure bricks line up nicely with top of screen.
+    [SerializeField]
+    private float gridScale = 1f; //Scale factor to fit grid to screen
+    [SerializeField]
+    private float brickHeightOffset = 0.6f; //Just use this to make sure bricks line up nicely with top of screen.
+
     private float halfWidth;
     private float halfHeight;
     private int numBricksStartHeight; //Holds percentage converted to number of blocks.
@@ -28,42 +29,40 @@ public class BrickManager : NetworkBehaviour
         CreateBricks();
     }
 
-    //Server side
+    [Server]
     public void CreateBricks() //Brick manager also uses this to reset bricks
     {
-        if (isServer)
+        bricks = new GameObject[width * height];
+
+        halfWidth = (width - 1f) / 2f;
+        halfHeight = (height - 1f) / 2f;
+        numBricksStartHeight = (int)(height * brickStartHeight); //Calculates at what y coordinate should we start creating bricks
+
+        for (int x = 0; x < width; x++)
         {
-            bricks = new GameObject[width, height];
-
-            halfWidth = (width - 1f) / 2f;
-            halfHeight = (height - 1f) / 2f;
-            numBricksStartHeight = (int)(height * brickStartHeight); //Calculates at what y coordinate should we start creating bricks
-
-            ScaleGrid(); //Makes sure grid is fit to the screen
-
-            for (int x = 0; x < width; x++)
+            for (int y = numBricksStartHeight; y < height; y++)
             {
-                for (int y = numBricksStartHeight; y < height; y++)
-                {
-                    CreateBrick(x, y);
-                }
+                CreateBrick(x, y);
             }
         }
+        
     }
 
     //Create a brick at the specified grid coordinates
+    [Server]
     private void CreateBrick(int x, int y)
     {
+        int i = x * height + y;
         gameManager.numBricks++;
 
-        bricks[x, y] = Instantiate(brickGO);
-        bricks[x, y].transform.parent = transform;
+        bricks[i] = Instantiate(brickGO, transform);
+        bricks[i].transform.parent = transform;
         //Position bricks, make sure y positions are half of x as the bricks are half as high as they are wide. We divide y by 2 as bricks are half as high as they are wide.
-        bricks[x, y].transform.position = new Vector2((x - halfWidth) * gridScale, (y - halfHeight) / 2f * gridScale + brickHeightOffset);
-        bricks[x, y].transform.localScale = new Vector2(gridScale, gridScale);
-        NetworkServer.Spawn(bricks[x, y]);
+        bricks[i].transform.position = new Vector2((x - halfWidth) * gridScale, (y - halfHeight) / 2f * gridScale + brickHeightOffset);
+        bricks[i].transform.localScale = new Vector2(gridScale, gridScale);
+        NetworkServer.Spawn(bricks[i]);
 
-        BrickColorGenerator generator = bricks[x, y].GetComponent<BrickColorGenerator>();
+        BrickColorGenerator generator = bricks[i].GetComponent<BrickColorGenerator>();
         generator.brickLevel = y - numBricksStartHeight; //Set brick level based on brick height.
         generator.halfHeight = halfHeight;
         if (Random.Range(0f, 1f) > 0.8f) //20% chance to generate an armoured brick, armoured bricks take 1 extra hit.
@@ -77,25 +76,13 @@ public class BrickManager : NetworkBehaviour
         }
     }
 
-    //Just makes sure the grid is fit to the screen properly. Only on server, clients resize their cams to the grid.
-    private void ScaleGrid()
-    {
-        gridScale = Constants.CAM_SIZE * 2 * Camera.main.aspect / width;
-        brickHeightOffset = Constants.CAM_SIZE - gridScale * height / 4f;
-    }
-
+    [Server]
     public void DestroyBricks() //Brick manager also uses this to reset bricks
     {
-        if (isServer)
+        for (int i = 0; i < bricks.Length; i++)
         {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = numBricksStartHeight; y < height; y++)
-                {
-                    NetworkServer.Destroy(bricks[x, y]);
-                }
-            }
-            bricks = new GameObject[width, height];
+            NetworkServer.Destroy(bricks[i]);
         }
+        bricks = new GameObject[width * height];
     }
 }

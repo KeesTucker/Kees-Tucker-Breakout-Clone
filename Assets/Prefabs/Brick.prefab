@@ -94,7 +94,6 @@ GameObject:
   - component: {fileID: 6758829946120174831}
   - component: {fileID: -136954207091104666}
   - component: {fileID: 7903367653522995524}
-  - component: {fileID: -8697505599547792296}
   m_Layer: 0
   m_Name: Brick
   m_TagString: Brick
@@ -194,15 +193,3 @@ MonoBehaviour:
   brickLevel: 0
   armouredBrick: 0
   halfHeight: 0
---- !u!114 &-8697505599547792296
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6069218850660007285}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c073263b31e34043901f2c9a3836bd7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

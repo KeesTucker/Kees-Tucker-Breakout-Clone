@@ -25,8 +25,6 @@ public class BallController : NetworkBehaviour
     public float speed; //Linear speed of ball, is adjusted as game progresses.
 
     [HideInInspector]
-    public bool isLocalBall = false; //Are we connected to the localPlayer.
-    [HideInInspector]
     public bool released = false; //Keeps track of whether ball is attached to paddle or game has started.
     [HideInInspector]
     public bool releaseFlag = false; //Triggers the Release() method in FixedUpdate() so physics are handled in FixedUpdate() instead of Update().
@@ -35,13 +33,20 @@ public class BallController : NetworkBehaviour
     {
         gameManager = FindObjectOfType<BreakoutManager>();
         speed = gameManager.initalSpeed;
+    }
 
-        if (paddleController.isLocalPlayer)//Check whether our paddle is the player object
+    public override void OnStartAuthority()
+    {
+        if (gameManager == null)
         {
-            isLocalBall = true;
-            gameManager.ballController = this;
+            gameManager = FindObjectOfType<BreakoutManager>();
         }
-        else //Gray out the other players.
+        gameManager.ballController = this;
+    }
+
+    public override void OnStartClient()
+    {
+        if (!hasAuthority)
         {
             SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
             spriteRenderer.color = Color.grey;
@@ -51,7 +56,7 @@ public class BallController : NetworkBehaviour
 
     private void Update()
     {
-        if (isLocalBall)//Ball position updates happen client side so it's smooth, bad for hacks though, possibly fix this.
+        if (hasAuthority)
         {
             if (Input.GetKeyDown(releaseKey) && !released)
             {
@@ -68,12 +73,14 @@ public class BallController : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (isLocalBall)
+        if (hasAuthority)
         {
             //If player just hit release key
             if (releaseFlag)
             {
-                Release();
+                releaseFlag = false;
+                //Randomise start vector, just picks a random vector between (-1, 1) and (1, 1) (that equates to 90 degrees).
+                rb.velocity = Vector3.Normalize(new Vector3(Random.Range(-1f, 1f), 1f, 0f)) * speed;
             }
         }
     }
@@ -81,7 +88,7 @@ public class BallController : NetworkBehaviour
     //Once the collision is over, let's just reset our velocity to make sure it is constant. Then we can destroy the brick we bounced off.
     private void OnCollisionExit(Collision collision)
     {
-        if (isLocalBall)
+        if (hasAuthority)
         {
             if (collision.gameObject.CompareTag("Brick"))
             {
@@ -89,9 +96,11 @@ public class BallController : NetworkBehaviour
             }
             else if (collision.gameObject.CompareTag("Paddle"))
             {
-                PaddleCollision(paddleController.paddleVelocity);
+                rb.velocity = Vector3.Normalize(rb.velocity + paddleController.paddleVelocity) * speed; //Impart velocity of paddle on ball to give friction approximation.
             }
-            AddRandomVelocity();
+
+            float randomisationAmount = Random.Range(-colliderReboundRandomiseMax, colliderReboundRandomiseMax); //Calculate small random value to add to velocity, use same value for x and y as there is no point it being different.
+            rb.velocity = Vector3.Normalize(rb.velocity + new Vector3(randomisationAmount, randomisationAmount, 0)) * speed; //Modify velocity
         }
     }
 
@@ -102,7 +111,7 @@ public class BallController : NetworkBehaviour
         if (generator.armouredBrick) //If its an armoured brick turn it into a normal brick.
         {
             generator.armouredBrick = false;
-            generator.RpcSetNormalBrickColour(); //Set it's colour to that of a normal brick.
+            generator.RpcSetNormalBrickColor(); //Set it's colour to that of a normal brick.
         }
         else //Otherwise destroy this brick
         {
@@ -112,36 +121,17 @@ public class BallController : NetworkBehaviour
         rb.velocity = Vector3.Normalize(rb.velocity) * speed;
     }
 
-    private void PaddleCollision(Vector3 velocityOfCollision)
-    {
-        rb.velocity = Vector3.Normalize(rb.velocity + velocityOfCollision) * speed; //Impart velocity of paddle on ball to give friction approximation.
-    }
-
-    //Randomise rebounds to avoid ball from getting stuck perfectly horizontal or vertical. Not the most elegant [WIP]
-    private void AddRandomVelocity()
-    {
-        float randomisationAmount = Random.Range(-colliderReboundRandomiseMax, colliderReboundRandomiseMax); //Calculate small random value to add to velocity, use same value for x and y as there is no point it being different.
-        rb.velocity = Vector3.Normalize(rb.velocity + new Vector3(randomisationAmount, randomisationAmount, 0)) * speed; //Modify velocity
-    }
-
-    //Player died, reset their velocity and released flag. Kill controller fires this. We are the localPlayer's ball.
-    public void Reset()
-    {
-        rb.velocity = Vector2.zero;
-        released = false;
-    }
-
-    //Fire the ball
-    private void Release()
-    {
-        releaseFlag = false;
-        //Randomise start vector, just picks a random vector between (-1, 1) and (1, 1) (that equates to 90 degrees).
-        rb.velocity = Vector3.Normalize(new Vector3(Random.Range(-1f, 1f), 1f, 0f)) * speed;
-    }
-
     [Command]
     public void CmdLoseLife()
     {
         gameManager.LoseLife();
+    }
+
+    //Player died, reset their velocity and released flag. Kill controller fires this. We are the localPlayer's ball.
+    [Client]
+    public void Reset()
+    {
+        rb.velocity = Vector2.zero;
+        released = false;
     }
 }

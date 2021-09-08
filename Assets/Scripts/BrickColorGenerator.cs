@@ -10,7 +10,7 @@ public class BrickColorGenerator : NetworkBehaviour
 
     [SyncVar]
     [HideInInspector]
-    public int brickLevel = 0; //Height level of brick, equivalent to colour.
+    public int brickLevel; //Height level of brick, equivalent to colour.
     [SyncVar]
     [HideInInspector]
     public bool armouredBrick = false; //Takes 2 hits to destroy if true
@@ -18,49 +18,38 @@ public class BrickColorGenerator : NetworkBehaviour
     [HideInInspector]
     public float halfHeight; //Half brick grid height.
 
-    private void Start()
+    public override void OnStartClient()
     {
-        //Update all brick colours when joining as a client. Our sync vars will be updated.
-        if (isClient)
-        {
-            SetBrickColor();
-        }
+        //Update all brick colours when joining as a client. Use the sync vars.
+        SetBrickColor(armouredBrick, brickLevel / halfHeight);
     }
 
-    //These set color functions are very ugly, I want to unify them but I need the sync vars for clients to connect with. Still thinking on it.
-    //[WIP]
-
-    //Client side
-    private void SetBrickColor()
-    {
-        if (armouredBrick)
-        {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().color = armouredColor; //Set armoured colour.
-        }
-        else
-        {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().color = colorGradient.Evaluate(brickLevel / halfHeight); //Set colour based on level
-        }
-    }
-
-    //Used on initial generation of bricks, the sync vars can't update in time so I send the data in the function args.
     [ClientRpc]
-    public void RpcSetBrickColor(bool armoured, float gradientInterpolater)
+    public void RpcSetBrickColor(bool armouredBrick, float colorHeight)
     {
-        if (armoured)
-        {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().color = armouredColor; //Set armoured colour.
-        }
-        else
-        {
-            transform.GetChild(0).GetComponent<SpriteRenderer>().color = colorGradient.Evaluate(gradientInterpolater); //Set colour based on level
-        }
+        //Use the values from the sync vars
+        SetBrickColor(armouredBrick, colorHeight);
     }
 
-    //Used when changing a brick from armoured to unarmoured, again the armoured sync var can't update fast enough so this just always sets colour to normal
     [ClientRpc]
-    public void RpcSetNormalBrickColour()
+    public void RpcSetNormalBrickColor()
     {
-        transform.GetChild(0).GetComponent<SpriteRenderer>().color = colorGradient.Evaluate(brickLevel / halfHeight); //Set colour based on level
+        SetBrickColor(false, brickLevel / halfHeight);
+    }
+
+    [Client]
+    public void SetBrickColor(bool armouredBrick, float colorHeight)
+    {
+        if (!float.IsNaN(colorHeight))
+        {
+            if (armouredBrick)
+            {
+                transform.GetChild(0).GetComponent<SpriteRenderer>().color = armouredColor; //Set armoured colour.
+            }
+            else
+            {
+                transform.GetChild(0).GetComponent<SpriteRenderer>().color = colorGradient.Evaluate(colorHeight); //Set colour based on level
+            }
+        }
     }
 }

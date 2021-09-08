@@ -176,8 +176,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  rb: {fileID: 4688066838542960352}
   ballGO: {fileID: 7492620497494272642, guid: 61953c7edafb72d4593da6eaad3a4746, type: 3}
-  releaseKey: 32
   friction: 150
-  velocity: {x: 0, y: 0, z: 0}
+  heightOfPaddle: -4
+  xClamp: 9
+  paddleVelocity: {x: 0, y: 0, z: 0}
